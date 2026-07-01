@@ -1,0 +1,18 @@
+{
+  "name": "@supriyadies-work/rn-devtools",
+  "version": "0.1.0",
+  "private": true,
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "typecheck": "echo 'Run typecheck from host app'"
+  },
+  "peerDependencies": {
+    "expo-clipboard": "*",
+    "react": "*",
+    "react-native": "*",
+    "react-native-gesture-handler": "*",
+    "react-native-reanimated": "*",
+    "react-native-safe-area-context": "*"
+  }
+}
