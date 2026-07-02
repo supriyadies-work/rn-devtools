@@ -1,9 +1,34 @@
 {
   "name": "@supriyadies-work/rn-devtools",
   "version": "0.1.0",
-  "private": true,
+  "description": "Supr - Devtools: host-agnostic React Native DevTools panel with route inspector, HTTP logger, network simulator, deep link launcher, and debug export.",
   "main": "src/index.ts",
   "types": "src/index.ts",
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/supriyadies-work/rn-devtools.git"
+  },
+  "bugs": {
+    "url": "https://github.com/supriyadies-work/rn-devtools/issues"
+  },
+  "homepage": "https://github.com/supriyadies-work/rn-devtools#readme",
+  "keywords": [
+    "react-native",
+    "devtools",
+    "debug",
+    "expo",
+    "http-logger",
+    "network-simulator"
+  ],
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "typecheck": "echo 'Run typecheck from host app'"
   },
