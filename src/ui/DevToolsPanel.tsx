@@ -78,6 +78,7 @@ export const DevToolsPanel = ({
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
+          style={styles.tabBarScroll}
           contentContainerStyle={styles.tabBar}
         >
           {TABS.map((tab) => (
@@ -137,10 +138,14 @@ const styles = StyleSheet.create({
   title: { color: colors.text, fontSize: 18, fontWeight: "700" },
   version: { color: colors.muted, fontSize: 11, fontWeight: "500" },
   close: { color: colors.muted, fontSize: 22 },
-  tabBar: {
-    flexDirection: "row",
+  tabBarScroll: {
+    flexGrow: 0,
+    flexShrink: 0,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+  },
+  tabBar: {
+    flexDirection: "row",
   },
   tab: {
     minWidth: 72,
