@@ -19,6 +19,10 @@ export type {
   NetworkSimulatorState,
   NetworkThrottleProfile,
   RouteInfo,
+  SocketConnectionSnapshot,
+  SocketConnectionState,
+  SocketLogDirection,
+  SocketLogEntry,
   StateAdapter,
   StateSection,
   StateSnapshot,
@@ -26,6 +30,13 @@ export type {
 } from "./core/types";
 export { httpLogStore } from "./http/httpLogStore";
 export { toCurl } from "./http/toCurl";
+export {
+  instrumentSocketIoClient,
+  type InstrumentableSocket,
+  type InstrumentSocketOptions,
+} from "./socket/instrumentSocketIoClient";
+export { socketConnectionStore } from "./socket/socketConnectionStore";
+export { createSocketLogEntryId, socketLogStore } from "./socket/socketLogStore";
 export {
   configureNetworkSimulator,
   maybeSimulateNetworkFailure,

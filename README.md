@@ -7,7 +7,7 @@
 ### Floating panel (FAB)
 
 - Draggable floating action button with persisted position (`initialFabPosition` / `onFabPositionChange`).
-- Opens a full-screen modal panel with five tabs.
+- Opens a full-screen modal panel with six tabs.
 - Gated by `config.enabled` — mount stays safe in production when disabled.
 
 ### Route inspector
@@ -34,6 +34,18 @@ Capture and inspect outbound HTTP traffic from your API layer:
 - **Clear** — wipe the in-memory log buffer.
 
 Wire your fetch/axios/RTK layer to `httpLogStore.upsert` / `httpLogStore.patch` (see [HTTP logging bridge](#http-logging-bridge)).
+
+### Socket logger
+
+Capture and inspect Socket.IO traffic when the host wires `instrumentSocketIoClient`:
+
+- **Connection banner** — state (`connected` / `disconnected` / `reconnecting`), `socketId`, transport, `businessId`, joined room count.
+- **Event list** — direction (`IN` / `OUT` / `SYS`), event name, timestamp (newest first, max 100 entries).
+- **Detail view** — full payload (formatted JSON), copy to clipboard.
+- **Filters** — direction chips (`All`, `In`, `Out`, `System`) + event name search.
+- **Clear** — wipe the in-memory socket log buffer.
+
+Wire your `socket.io-client` instance via `instrumentSocketIoClient` (see [Socket logging bridge](#socket-logging-bridge)).
 
 ### Network simulator (global)
 
@@ -80,11 +92,13 @@ Generate a single JSON snapshot for bug reports or QA handoff:
 ```json
 {
   "createdAt": "...",
-  "devtools": { "brand": "Supr - Devtools", "version": "0.1.0" },
+  "devtools": { "brand": "Supr - Devtools", "version": "0.2.0" },
   "appInfo": { ... },
   "routeInfo": { ... },
   "networkSimulator": { ... },
   "httpLogs": [ ... ],
+  "socketConnection": { "state": "connected", "joinedRooms": [], ... },
+  "socketLogs": [ ... ],
   "stateSnapshot": { ... },
   "extra": null
 }
@@ -135,6 +149,7 @@ export const AppRoot = () => <DevToolsHost config={config} />;
 | `network` | `initialState?` | Default simulator settings on boot |
 | `deeplink` | `open()`, `presets?`, `loadRecent?`, `saveRecent?`, `recentLimit?` | Deep link tab |
 | `export` | `getExtraBundleData?()`, `onShareBundle?()` | Extra export fields + native share |
+| `instrumentSocketIoClient` | `enabled?`, `url?`, `sanitizePayload?`, `maxPayloadChars?` | Socket tab + socket sections in export |
 | `initialFabPosition` | `FabPosition` | Restore FAB position across sessions |
 | `onFabPositionChange` | `(pos) => void` | Persist FAB drag position |
 
@@ -228,6 +243,37 @@ if (simulated) {
 
 The simulator is global — one toggle affects all bridged requests.
 
+## Socket logging bridge
+
+Instrument a `socket.io-client` instance once (e.g. after `io()`):
+
+```ts
+import {
+  instrumentSocketIoClient,
+  socketLogStore,
+  socketConnectionStore,
+} from "@supriyadies-work/rn-devtools";
+
+const uninstrument = instrumentSocketIoClient(socket, {
+  enabled: () => isDevToolsEnabled(),
+  url: process.env.EXPO_PUBLIC_API_BASE_URL,
+  sanitizePayload: (event, payload) => redactSensitiveData(payload),
+});
+
+// On teardown (optional)
+uninstrument();
+socketConnectionStore.reset();
+socketLogStore.clear();
+```
+
+The instrumentor logs:
+
+- **Outbound** — wrapped `socket.emit` calls
+- **Inbound** — `socket.onAny` (excluding lifecycle events)
+- **System** — `connect`, `disconnect`, `connect_error`, `reconnect`, `reconnect_attempt`, `reconnect_failed`
+
+Room/business tracking is derived from `join_conversation_room`, `leave_conversation_room`, `join_business`, and `leave_business` emits.
+
 ## Public API
 
 | Export | Purpose |
@@ -235,6 +281,10 @@ The simulator is global — one toggle affects all bridged requests.
 | `DevToolsHost` | Root component — mount once in your app tree |
 | `resolveDevToolsEnabled` | Helper for dev-only gating |
 | `httpLogStore` | Push/patch/clear HTTP log entries |
+| `socketLogStore` | Push/clear socket log entries |
+| `socketConnectionStore` | Read/update/reset live connection snapshot |
+| `instrumentSocketIoClient` | Instrument `socket.io-client` for logging |
+| `createSocketLogEntryId` | Generate unique socket log entry IDs |
 | `toCurl` | Convert `HttpLogEntry` to curl string |
 | `maybeSimulateNetworkFailure` | Apply simulator before requests |
 | `networkSimulatorStore` | Read/write simulator state programmatically |
@@ -246,7 +296,7 @@ The simulator is global — one toggle affects all bridged requests.
 
 - Library does **not** pull data from the host automatically.
 - Library does **not** send telemetry or upload to third parties.
-- All displayed/exported data is supplied explicitly by the host via adapters and `httpLogStore`.
+- All displayed/exported data is supplied explicitly by the host via adapters, `httpLogStore`, and `instrumentSocketIoClient`.
 - Treat all data as potentially sensitive — sanitize before pushing to devtools.
 
 ## Host responsibility

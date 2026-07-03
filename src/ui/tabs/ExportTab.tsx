@@ -8,6 +8,8 @@ import {
 import type { DevToolsConfig } from "../../core/types";
 import { httpLogStore } from "../../http/httpLogStore";
 import { networkSimulatorStore } from "../../network/networkSimulatorStore";
+import { socketConnectionStore } from "../../socket/socketConnectionStore";
+import { socketLogStore } from "../../socket/socketLogStore";
 import { copyToClipboard } from "../copyToClipboard";
 import { formatJsonBody } from "../formatJsonBody";
 import { colors } from "../theme";
@@ -31,6 +33,8 @@ const createBundle = async (config: DevToolsConfig) => {
     routeInfo,
     networkSimulator: networkSimulatorStore.getState(),
     httpLogs: httpLogStore.getEntries(),
+    socketConnection: socketConnectionStore.getSnapshot(),
+    socketLogs: socketLogStore.getEntries(),
     stateSnapshot,
     extra: extra ?? null,
   };

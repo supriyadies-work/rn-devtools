@@ -2,6 +2,7 @@ import React, { useSyncExternalStore, useState } from "react";
 import {
   Modal,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -19,13 +20,15 @@ import { DeepLinkTab } from "./tabs/DeepLinkTab";
 import { ExportTab } from "./tabs/ExportTab";
 import { HttpLoggerTab } from "./tabs/HttpLoggerTab";
 import { RouteTab } from "./tabs/RouteTab";
+import { SocketLoggerTab } from "./tabs/SocketLoggerTab";
 import { StorageTab } from "./tabs/StorageTab";
 
-type TabId = "route" | "http" | "storage" | "deeplink" | "export";
+type TabId = "route" | "http" | "socket" | "storage" | "deeplink" | "export";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "route", label: "Route" },
   { id: "http", label: "HTTP" },
+  { id: "socket", label: "Socket" },
   { id: "storage", label: "Storage" },
   { id: "deeplink", label: "DeepLink" },
   { id: "export", label: "Export" },
@@ -72,7 +75,11 @@ export const DevToolsPanel = ({
             <Text style={styles.close}>✕</Text>
           </Pressable>
         </View>
-        <View style={styles.tabBar}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.tabBar}
+        >
           {TABS.map((tab) => (
             <Pressable
               key={tab.id}
@@ -89,12 +96,13 @@ export const DevToolsPanel = ({
               </Text>
             </Pressable>
           ))}
-        </View>
+        </ScrollView>
         <View style={styles.content}>
           {activeTab === "route" ? (
             <RouteTab routeInfo={routeInfo} />
           ) : null}
           {activeTab === "http" ? <HttpLoggerTab /> : null}
+          {activeTab === "socket" ? <SocketLoggerTab /> : null}
           {activeTab === "storage" ? (
             <StorageTab
               appInfo={config.appInfo}
@@ -135,7 +143,8 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   tab: {
-    flex: 1,
+    minWidth: 72,
+    paddingHorizontal: 12,
     paddingVertical: 12,
     alignItems: "center",
   },

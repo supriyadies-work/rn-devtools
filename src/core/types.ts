@@ -1,3 +1,31 @@
+export type SocketLogDirection = "in" | "out" | "system";
+
+export type SocketConnectionState =
+  | "disconnected"
+  | "connecting"
+  | "connected"
+  | "reconnecting";
+
+export type SocketLogEntry = {
+  id: string;
+  timestamp: number;
+  direction: SocketLogDirection;
+  event: string;
+  payload?: unknown;
+  redacted?: boolean;
+};
+
+export type SocketConnectionSnapshot = {
+  state: SocketConnectionState;
+  socketId?: string;
+  url?: string;
+  transport?: string;
+  reconnectAttempt?: number;
+  joinedRooms: string[];
+  businessId?: string;
+  updatedAt: number;
+};
+
 export type HttpLogPhase = "pending" | "done";
 
 export type HttpLogEntry = {

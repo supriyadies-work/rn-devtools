@@ -1,7 +1,7 @@
 {
   "name": "@supriyadies-work/rn-devtools",
-  "version": "0.1.1",
-  "description": "Supr - Devtools: host-agnostic React Native DevTools panel with route inspector, HTTP logger, network simulator, deep link launcher, and debug export.",
+  "version": "0.2.0",
+  "description": "Supr - Devtools: host-agnostic React Native DevTools panel with route inspector, HTTP logger, socket logger, network simulator, deep link launcher, and debug export.",
   "main": "src/index.ts",
   "types": "src/index.ts",
   "files": [
@@ -23,6 +23,7 @@
     "debug",
     "expo",
     "http-logger",
+    "socket-logger",
     "network-simulator"
   ],
   "license": "MIT",
