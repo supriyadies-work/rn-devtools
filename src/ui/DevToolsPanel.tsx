@@ -19,20 +19,19 @@ import { colors } from "./theme";
 import { DeepLinkTab } from "./tabs/DeepLinkTab";
 import { ExportTab } from "./tabs/ExportTab";
 import { HttpLoggerTab } from "./tabs/HttpLoggerTab";
+import { PushCallTab } from "./tabs/PushCallTab";
 import { RouteTab } from "./tabs/RouteTab";
 import { SocketLoggerTab } from "./tabs/SocketLoggerTab";
 import { StorageTab } from "./tabs/StorageTab";
 
-type TabId = "route" | "http" | "socket" | "storage" | "deeplink" | "export";
-
-const TABS: { id: TabId; label: string }[] = [
-  { id: "route", label: "Route" },
-  { id: "http", label: "HTTP" },
-  { id: "socket", label: "Socket" },
-  { id: "storage", label: "Storage" },
-  { id: "deeplink", label: "DeepLink" },
-  { id: "export", label: "Export" },
-];
+type TabId =
+  | "route"
+  | "http"
+  | "socket"
+  | "pushcall"
+  | "storage"
+  | "deeplink"
+  | "export";
 
 type DevToolsPanelProps = {
   config: DevToolsConfig;
@@ -46,6 +45,7 @@ export const DevToolsPanel = ({
   config,
 }: DevToolsPanelProps) => {
   const insets = useSafeAreaInsets();
+  const hasPushCall = Boolean(config.pushCall);
   const [activeTab, setActiveTab] = useState<TabId>("route");
   const routeInfo = useSyncExternalStore(
     config.route?.subscribe ?? (() => () => {}),
@@ -57,6 +57,19 @@ export const DevToolsPanel = ({
     () => config.state?.getSnapshot() ?? { sections: [] },
     () => config.state?.getSnapshot() ?? { sections: [] },
   );
+
+  const tabs: { id: TabId; label: string }[] = [
+    { id: "route", label: "Route" },
+    { id: "http", label: "HTTP" },
+    { id: "socket", label: "Socket" },
+    ...(hasPushCall ? [{ id: "pushcall" as const, label: "Push/Call" }] : []),
+    { id: "storage", label: "Storage" },
+    { id: "deeplink", label: "DeepLink" },
+    { id: "export", label: "Export" },
+  ];
+
+  const safeActiveTab =
+    activeTab === "pushcall" && !hasPushCall ? "route" : activeTab;
 
   return (
     <Modal
@@ -81,16 +94,16 @@ export const DevToolsPanel = ({
           style={styles.tabBarScroll}
           contentContainerStyle={styles.tabBar}
         >
-          {TABS.map((tab) => (
+          {tabs.map((tab) => (
             <Pressable
               key={tab.id}
               onPress={() => setActiveTab(tab.id)}
-              style={[styles.tab, activeTab === tab.id && styles.tabActive]}
+              style={[styles.tab, safeActiveTab === tab.id && styles.tabActive]}
             >
               <Text
                 style={[
                   styles.tabLabel,
-                  activeTab === tab.id && styles.tabLabelActive,
+                  safeActiveTab === tab.id && styles.tabLabelActive,
                 ]}
               >
                 {tab.label}
@@ -99,12 +112,15 @@ export const DevToolsPanel = ({
           ))}
         </ScrollView>
         <View style={styles.content}>
-          {activeTab === "route" ? (
+          {safeActiveTab === "route" ? (
             <RouteTab routeInfo={routeInfo} />
           ) : null}
-          {activeTab === "http" ? <HttpLoggerTab /> : null}
-          {activeTab === "socket" ? <SocketLoggerTab /> : null}
-          {activeTab === "storage" ? (
+          {safeActiveTab === "http" ? <HttpLoggerTab /> : null}
+          {safeActiveTab === "socket" ? <SocketLoggerTab /> : null}
+          {safeActiveTab === "pushcall" && config.pushCall ? (
+            <PushCallTab appInfo={config.appInfo} adapter={config.pushCall} />
+          ) : null}
+          {safeActiveTab === "storage" ? (
             <StorageTab
               appInfo={config.appInfo}
               stateSnapshot={stateSnapshot}
@@ -112,10 +128,10 @@ export const DevToolsPanel = ({
               onFullReset={config.state?.onFullReset}
             />
           ) : null}
-          {activeTab === "deeplink" ? (
+          {safeActiveTab === "deeplink" ? (
             <DeepLinkTab adapter={config.deeplink} />
           ) : null}
-          {activeTab === "export" ? <ExportTab config={config} /> : null}
+          {safeActiveTab === "export" ? <ExportTab config={config} /> : null}
         </View>
         <ClipboardToast bottomInset={insets.bottom} />
       </View>

@@ -28,6 +28,8 @@ const AppInfoSection = ({ appInfo }: { appInfo: AppInfo }) => (
       ["Supabase URL", appInfo.supabaseUrl ?? "(unset)"],
       ["Bundle ID", appInfo.bundleId ?? "(unset)"],
       ["App name", appInfo.appName ?? "(unset)"],
+      ["Version", appInfo.versionName ?? "(unset)"],
+      ["Build identifier", appInfo.buildNumber ?? "(unset)"],
       ["__DEV__", String(appInfo.isDev)],
     ].map(([key, value]) => (
       <View key={key} style={styles.entryRow}>

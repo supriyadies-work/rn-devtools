@@ -8,6 +8,7 @@ import {
 import type { DevToolsConfig } from "../../core/types";
 import { httpLogStore } from "../../http/httpLogStore";
 import { networkSimulatorStore } from "../../network/networkSimulatorStore";
+import { pushCallLogStore } from "../../pushCall/pushCallLogStore";
 import { socketConnectionStore } from "../../socket/socketConnectionStore";
 import { socketLogStore } from "../../socket/socketLogStore";
 import { copyToClipboard } from "../copyToClipboard";
@@ -22,6 +23,9 @@ const createBundle = async (config: DevToolsConfig) => {
   const routeInfo = config.route?.getCurrentRoute() ?? null;
   const stateSnapshot = config.state?.getSnapshot() ?? { sections: [] };
   const extra = await config.export?.getExtraBundleData?.();
+  const pushCallLoggingEnabled = config.pushCall
+    ? Boolean(await config.pushCall.loadConsent())
+    : false;
 
   return {
     createdAt: new Date().toISOString(),
@@ -35,6 +39,8 @@ const createBundle = async (config: DevToolsConfig) => {
     httpLogs: httpLogStore.getEntries(),
     socketConnection: socketConnectionStore.getSnapshot(),
     socketLogs: socketLogStore.getEntries(),
+    pushCallLoggingEnabled,
+    pushCallLogs: pushCallLogStore.getEntries(),
     stateSnapshot,
     extra: extra ?? null,
   };
