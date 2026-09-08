@@ -7,7 +7,7 @@
 ### Floating panel (FAB)
 
 - Draggable floating action button with persisted position (`initialFabPosition` / `onFabPositionChange`).
-- Opens a full-screen modal panel with six tabs.
+- Opens a full-screen modal panel with tabs (Push/Call appears only when `pushCall` is wired).
 - Gated by `config.enabled` — mount stays safe in production when disabled.
 
 ### Route inspector
@@ -47,6 +47,17 @@ Capture and inspect Socket.IO traffic when the host wires `instrumentSocketIoCli
 
 Wire your `socket.io-client` instance via `instrumentSocketIoClient` (see [Socket logging bridge](#socket-logging-bridge)).
 
+### Push/Call logger (QA handoff)
+
+Opt-in logging for push and call pipelines (visible only when `pushCall` adapter is wired):
+
+- **Activate** shows terms; after **Accept**, the host requests OS notification permission, then bridges may push allowlisted events into `pushCallLogStore`.
+- **Deactivate** revokes consent, stops capture, and **clears** the in-memory buffer.
+- QA-readable rows with outcome chips: `RECEIVED` / `SHOWN` / `FAILED` / `SKIPPED` / `CALL`.
+- Banner shows logging ON/OFF, build chip (`versionName (buildNumber)`), and last OS permission result.
+- **Copy all** exports sanitized logs + app identity for ticket handoff.
+- Host must allowlist payloads before `pushCallLogStore.push` — never pass raw FCM/VoIP/CallKit objects (no tokens, SDP, phones).
+
 ### Network simulator (global)
 
 Simulate network conditions for **all** requests that call `maybeSimulateNetworkFailure()` before executing:
@@ -66,7 +77,7 @@ Two layers in one tab:
 
 **App / Build** (always shown from `appInfo`):
 
-- App variant, API URL, Supabase URL, bundle ID, app name, `__DEV__` flag.
+- App variant, API URL, Supabase URL, bundle ID, app name, **version name**, **build identifier**, `__DEV__` flag.
 
 **Custom sections** (from `state` adapter):
 
@@ -92,13 +103,15 @@ Generate a single JSON snapshot for bug reports or QA handoff:
 ```json
 {
   "createdAt": "...",
-  "devtools": { "brand": "Supr - Devtools", "version": "0.2.0" },
+  "devtools": { "brand": "Supr - Devtools", "version": "0.3.0" },
   "appInfo": { ... },
   "routeInfo": { ... },
   "networkSimulator": { ... },
   "httpLogs": [ ... ],
   "socketConnection": { "state": "connected", "joinedRooms": [], ... },
   "socketLogs": [ ... ],
+  "pushCallLoggingEnabled": false,
+  "pushCallLogs": [ ... ],
   "stateSnapshot": { ... },
   "extra": null
 }
@@ -149,6 +162,7 @@ export const AppRoot = () => <DevToolsHost config={config} />;
 | `network` | `initialState?` | Default simulator settings on boot |
 | `deeplink` | `open()`, `presets?`, `loadRecent?`, `saveRecent?`, `recentLimit?` | Deep link tab |
 | `export` | `getExtraBundleData?()`, `onShareBundle?()` | Extra export fields + native share |
+| `pushCall` | `requestOsNotificationPermission()`, `loadConsent()`, `saveConsent()`, `onLoggingChange()`, `termsText?` | Push/Call tab (hidden if omitted) |
 | `instrumentSocketIoClient` | `enabled?`, `url?`, `sanitizePayload?`, `maxPayloadChars?` | Socket tab + socket sections in export |
 | `initialFabPosition` | `FabPosition` | Restore FAB position across sessions |
 | `onFabPositionChange` | `(pos) => void` | Persist FAB drag position |
@@ -164,7 +178,15 @@ const config: DevToolsConfig = {
     appVariant: "dev",
     apiBaseUrl: "https://api.example.com",
     bundleId: "com.example.app.dev",
+    versionName: "1.0.0",
+    buildNumber: "42",
     isDev: __DEV__,
+  },
+  pushCall: {
+    loadConsent: () => storage.getBoolean("devtools.pushCall") ?? false,
+    saveConsent: (enabled) => storage.set("devtools.pushCall", enabled),
+    onLoggingChange: (enabled) => setPushCallLoggingEnabled(enabled),
+    requestOsNotificationPermission: () => requestNotificationPermission(),
   },
   route: {
     getCurrentRoute: () => ({ pathname, segments, params, routeFile }),
@@ -282,6 +304,9 @@ Room/business tracking is derived from `join_conversation_room`, `leave_conversa
 | `resolveDevToolsEnabled` | Helper for dev-only gating |
 | `httpLogStore` | Push/patch/clear HTTP log entries |
 | `socketLogStore` | Push/clear socket log entries |
+| `pushCallLogStore` | Push/clear Push/Call QA log entries |
+| `createPushCallLogEntryId` | Generate unique Push/Call log entry IDs |
+| `DEFAULT_PUSH_CALL_TERMS` | Default English TnC body for Activate |
 | `socketConnectionStore` | Read/update/reset live connection snapshot |
 | `instrumentSocketIoClient` | Instrument `socket.io-client` for logging |
 | `createSocketLogEntryId` | Generate unique socket log entry IDs |
@@ -296,15 +321,23 @@ Room/business tracking is derived from `join_conversation_room`, `leave_conversa
 
 - Library does **not** pull data from the host automatically.
 - Library does **not** send telemetry or upload to third parties.
-- All displayed/exported data is supplied explicitly by the host via adapters, `httpLogStore`, and `instrumentSocketIoClient`.
+- All displayed/exported data is supplied explicitly by the host via adapters, `httpLogStore`, `pushCallLogStore`, and `instrumentSocketIoClient`.
 - Treat all data as potentially sensitive — sanitize before pushing to devtools.
+- Push/Call logging is opt-in (TnC Accept); Deactivate clears the buffer.
 
 ## Host responsibility
 
 - Define an allowlist of safe data for devtools (tokens, sessions, PII must be redacted).
 - Wire `StorageEntry.redacted: true` for sensitive keys.
 - Keep devtools disabled in production builds (`enabled: false`).
-- Own persistence for FAB position, deep link history, and export share behavior.
+- Own persistence for FAB position, deep link history, Push/Call consent, and export share behavior.
+
+## What's New — v0.3.0
+
+- Push/Call logging tab for QA: see whether a notification or call was received, shown, failed, or skipped — on device, without Metro.
+- Opt-in only: Activate shows terms; after Accept, the app may request notification permission. Deactivate revokes logging and clears the log buffer.
+- App / Build now shows version name and build identifier so QA can report exactly which build was tested.
+- Export / Copy all includes sanitized push/call traces (no tokens, SDP, or phone numbers).
 
 ## Contributing
 

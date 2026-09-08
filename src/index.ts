@@ -18,6 +18,10 @@ export type {
   NetworkForcedError,
   NetworkSimulatorState,
   NetworkThrottleProfile,
+  PushCallAdapter,
+  PushCallLogEntry,
+  PushCallLogOutcome,
+  PushCallLogSource,
   RouteInfo,
   SocketConnectionSnapshot,
   SocketConnectionState,
@@ -37,6 +41,11 @@ export {
 } from "./socket/instrumentSocketIoClient";
 export { socketConnectionStore } from "./socket/socketConnectionStore";
 export { createSocketLogEntryId, socketLogStore } from "./socket/socketLogStore";
+export {
+  createPushCallLogEntryId,
+  pushCallLogStore,
+} from "./pushCall/pushCallLogStore";
+export { DEFAULT_PUSH_CALL_TERMS } from "./pushCall/defaultTerms";
 export {
   configureNetworkSimulator,
   maybeSimulateNetworkFailure,

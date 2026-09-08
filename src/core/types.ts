@@ -52,7 +52,48 @@ export type AppInfo = {
   supabaseUrl?: string;
   bundleId?: string;
   appName?: string;
+  /** Marketing / short version (e.g. CFBundleShortVersionString). */
+  versionName?: string;
+  /** Build identifier (e.g. CFBundleVersion / Android versionCode). */
+  buildNumber?: string;
   isDev: boolean;
+};
+
+export type PushCallLogSource =
+  | "fcm"
+  | "notifee"
+  | "voip"
+  | "callkit"
+  | "system";
+
+export type PushCallLogOutcome =
+  | "received"
+  | "display_ok"
+  | "display_fail"
+  | "skipped"
+  | "lifecycle";
+
+export type PushCallLogEntry = {
+  id: string;
+  timestamp: number;
+  source: PushCallLogSource;
+  event: string;
+  outcome?: PushCallLogOutcome;
+  summary?: string;
+  payload?: unknown;
+  redacted?: boolean;
+};
+
+export type PushCallAdapter = {
+  /** Host-provided TnC body (English). Library shows default if omitted. */
+  termsText?: string;
+  /** After Accept: request OS notif permission; return granted boolean. */
+  requestOsNotificationPermission: () => Promise<boolean>;
+  /** Load/save consent across sessions (MMKV recommended). */
+  loadConsent: () => boolean | Promise<boolean>;
+  saveConsent: (enabled: boolean) => void | Promise<void>;
+  /** Called when logging flips ON/OFF so host arms/disarms bridges. */
+  onLoggingChange: (enabled: boolean) => void;
 };
 
 export type FabPosition = {
@@ -144,4 +185,5 @@ export type DevToolsConfig = {
   network?: NetworkAdapter;
   deeplink?: DeepLinkAdapter;
   export?: ExportAdapter;
+  pushCall?: PushCallAdapter;
 };
