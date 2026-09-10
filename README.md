@@ -40,6 +40,7 @@ Wire your fetch/axios/RTK layer to `httpLogStore.upsert` / `httpLogStore.patch` 
 Capture and inspect Socket.IO traffic when the host wires `instrumentSocketIoClient`:
 
 - **Connection banner** — state (`connected` / `disconnected` / `reconnecting`), `socketId`, transport, `businessId`, joined room count.
+- Expand rooms to list each joined room. When `socket.resolveRoomLabel` is wired, show the human label with the raw id as a muted subtitle; otherwise show the raw id.
 - **Event list** — direction (`IN` / `OUT` / `SYS`), event name, timestamp (newest first, max 100 entries).
 - **Detail view** — full payload (formatted JSON), copy to clipboard.
 - **Filters** — direction chips (`All`, `In`, `Out`, `System`) + event name search.
@@ -164,7 +165,8 @@ export const AppRoot = () => <DevToolsHost config={config} />;
 | `network` | `initialState?` | Default simulator settings on boot |
 | `deeplink` | `open()`, `presets?`, `loadRecent?`, `saveRecent?`, `recentLimit?` | Deep link tab |
 | `export` | `getExtraBundleData?()`, `onShareBundle?()` | Extra export fields + native share |
-| `pushCall` | `requestOsNotificationPermission()`, `loadConsent()`, `saveConsent()`, `onLoggingChange()`, `termsText?` | Push/Call tab (hidden if omitted) |
+| `pushCall` | `requestOsNotificationPermission()`, `loadConsent()`, `saveConsent()`, `onLoggingChange()`, `termsText?`, diagnostics helpers | Push/Call tab (hidden if omitted) |
+| `socket` | `resolveRoomLabel?(roomId)` | Socket joined-rooms labels (fallback: raw id) |
 | `instrumentSocketIoClient` | `enabled?`, `url?`, `sanitizePayload?`, `maxPayloadChars?` | Socket tab + socket sections in export |
 | `initialFabPosition` | `FabPosition` | Restore FAB position across sessions |
 | `onFabPositionChange` | `(pos) => void` | Persist FAB drag position |
@@ -192,6 +194,9 @@ const config: DevToolsConfig = {
     getOsNotificationPermission: () => getNotificationPermissionStatus(),
     getFcmToken: () => getFcmToken(),
     getDiagnostics: () => getPushCallDiagnostics(),
+  },
+  socket: {
+    resolveRoomLabel: (roomId) => lookupConversationDisplayName(roomId),
   },
   route: {
     getCurrentRoute: () => ({ pathname, segments, params, routeFile }),

@@ -116,7 +116,9 @@ export const DevToolsPanel = ({
             <RouteTab routeInfo={routeInfo} />
           ) : null}
           {safeActiveTab === "http" ? <HttpLoggerTab /> : null}
-          {safeActiveTab === "socket" ? <SocketLoggerTab /> : null}
+          {safeActiveTab === "socket" ? (
+            <SocketLoggerTab adapter={config.socket} />
+          ) : null}
           {safeActiveTab === "pushcall" && config.pushCall ? (
             <PushCallTab appInfo={config.appInfo} adapter={config.pushCall} />
           ) : null}

@@ -2,6 +2,6 @@
 export const DEVTOOLS_BRAND_NAME = "Supr - Devtools";
 
 /** Keep in sync with package.json version when releasing. */
-export const DEVTOOLS_VERSION = "0.3.1";
+export const DEVTOOLS_VERSION = "0.3.2";
 
 export const DEVTOOLS_VERSION_LABEL = `v${DEVTOOLS_VERSION}`;

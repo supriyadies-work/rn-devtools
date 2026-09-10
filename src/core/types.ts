@@ -195,6 +195,11 @@ export type RouteAdapter = {
   subscribe?: (listener: () => void) => () => void;
 };
 
+export type SocketAdapter = {
+  /** Map a joined conversation/room id to a human label (e.g. chat display name). */
+  resolveRoomLabel?: (roomId: string) => string | null | undefined;
+};
+
 export type DevToolsConfig = {
   enabled: boolean;
   appInfo: AppInfo;
@@ -206,4 +211,5 @@ export type DevToolsConfig = {
   deeplink?: DeepLinkAdapter;
   export?: ExportAdapter;
   pushCall?: PushCallAdapter;
+  socket?: SocketAdapter;
 };
