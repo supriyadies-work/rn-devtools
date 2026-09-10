@@ -54,9 +54,11 @@ Opt-in logging for push and call pipelines (visible only when `pushCall` adapter
 - **Activate** shows terms; after **Accept**, the host requests OS notification permission, then bridges may push allowlisted events into `pushCallLogStore`.
 - **Deactivate** revokes consent, stops capture, and **clears** the in-memory buffer.
 - QA-readable rows with outcome chips: `RECEIVED` / `SHOWN` / `FAILED` / `SKIPPED` / `CALL`.
-- Banner shows logging ON/OFF, build chip (`versionName (buildNumber)`), and last OS permission result.
-- **Copy all** exports sanitized logs + app identity for ticket handoff.
-- Host must allowlist payloads before `pushCallLogStore.push` — never pass raw FCM/VoIP/CallKit objects (no tokens, SDP, phones).
+- Banner: logging ON/OFF, **OS permission** (refreshed on Accept and consent restore), and **`?` diagnostics** popup (app/build, package versions, mic/phone/notif perms, FCM token while logging ON + Copy all).
+- List previews: FCM/Notifee show **title + body**; CallKit shows **caller name** (uuid/room_id only in detail).
+- Filter chips stay visible when the All list is long.
+- **Copy all** (banner) exports sanitized logs + app identity; FCM token included only when logging is ON.
+- Host must allowlist event payloads before `pushCallLogStore.push` — never pass raw FCM/VoIP/CallKit objects into log rows (no tokens, SDP, phones in event payloads).
 
 ### Network simulator (global)
 
@@ -103,7 +105,7 @@ Generate a single JSON snapshot for bug reports or QA handoff:
 ```json
 {
   "createdAt": "...",
-  "devtools": { "brand": "Supr - Devtools", "version": "0.3.0" },
+  "devtools": { "brand": "Supr - Devtools", "version": "0.3.1" },
   "appInfo": { ... },
   "routeInfo": { ... },
   "networkSimulator": { ... },
@@ -187,6 +189,9 @@ const config: DevToolsConfig = {
     saveConsent: (enabled) => storage.set("devtools.pushCall", enabled),
     onLoggingChange: (enabled) => setPushCallLoggingEnabled(enabled),
     requestOsNotificationPermission: () => requestNotificationPermission(),
+    getOsNotificationPermission: () => getNotificationPermissionStatus(),
+    getFcmToken: () => getFcmToken(),
+    getDiagnostics: () => getPushCallDiagnostics(),
   },
   route: {
     getCurrentRoute: () => ({ pathname, segments, params, routeFile }),
@@ -332,12 +337,19 @@ Room/business tracking is derived from `join_conversation_room`, `leave_conversa
 - Keep devtools disabled in production builds (`enabled: false`).
 - Own persistence for FAB position, deep link history, Push/Call consent, and export share behavior.
 
+## What's New — v0.3.1
+
+- Push/Call **?** diagnostics popup (app/build, Notifee/Firebase versions, mic/phone/notif perms, FCM token while logging ON) with Copy all.
+- OS permission refreshes on Accept and consent restore (no stuck `unknown`).
+- Filter chips no longer clip under a long All list.
+- FCM/Notifee rows: title + body; CallKit rows: caller name (ids in detail only).
+
 ## What's New — v0.3.0
 
 - Push/Call logging tab for QA: see whether a notification or call was received, shown, failed, or skipped — on device, without Metro.
 - Opt-in only: Activate shows terms; after Accept, the app may request notification permission. Deactivate revokes logging and clears the log buffer.
 - App / Build now shows version name and build identifier so QA can report exactly which build was tested.
-- Export / Copy all includes sanitized push/call traces (no tokens, SDP, or phone numbers).
+- Export / Copy all includes sanitized push/call traces (event payloads stay allowlisted — no tokens/SDP/phones in log rows).
 
 ## Contributing
 
