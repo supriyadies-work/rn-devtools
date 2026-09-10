@@ -25,6 +25,7 @@ export type {
   PushCallLogSource,
   PushCallOsPermission,
   RouteInfo,
+  SocketAdapter,
   SocketConnectionSnapshot,
   SocketConnectionState,
   SocketLogDirection,

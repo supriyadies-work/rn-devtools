@@ -9,7 +9,11 @@ import {
   View,
 } from "react-native";
 
-import type { SocketLogDirection, SocketLogEntry } from "../../core/types";
+import type {
+  SocketAdapter,
+  SocketLogDirection,
+  SocketLogEntry,
+} from "../../core/types";
 import { socketLogStore } from "../../socket/socketLogStore";
 import { CopyIconButton } from "../CopyIconButton";
 import { formatJsonBody } from "../formatJsonBody";
@@ -19,6 +23,33 @@ import { SectionHeader } from "../SectionHeader";
 import { colors } from "../theme";
 
 type DirectionFilter = "all" | SocketLogDirection;
+
+type SocketLoggerTabProps = {
+  adapter?: SocketAdapter;
+};
+
+type RoomRow = {
+  id: string;
+  label: string;
+  showIdSubtitle: boolean;
+};
+
+const buildRoomRows = (
+  roomIds: string[],
+  resolveRoomLabel?: SocketAdapter["resolveRoomLabel"],
+): RoomRow[] =>
+  roomIds.map((id) => {
+    const resolved = resolveRoomLabel?.(id);
+    const label =
+      typeof resolved === "string" && resolved.trim().length > 0
+        ? resolved.trim()
+        : id;
+    return {
+      id,
+      label,
+      showIdSubtitle: label !== id,
+    };
+  });
 
 const directionLabel: Record<SocketLogDirection, string> = {
   in: "IN",
@@ -53,13 +84,18 @@ const payloadPreview = (payload: unknown): string => {
   return text.length > 80 ? `${text.slice(0, 80)}…` : text;
 };
 
-export const SocketLoggerTab = () => {
+export const SocketLoggerTab = ({ adapter }: SocketLoggerTabProps) => {
   const entries = useSocketLogEntries();
   const connection = useSocketConnectionSnapshot();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [directionFilter, setDirectionFilter] = useState<DirectionFilter>("all");
   const [eventFilter, setEventFilter] = useState("");
   const [roomsExpanded, setRoomsExpanded] = useState(false);
+
+  const roomRows = useMemo(
+    () => buildRoomRows(connection.joinedRooms, adapter?.resolveRoomLabel),
+    [adapter?.resolveRoomLabel, connection.joinedRooms],
+  );
 
   const filtered = useMemo(() => {
     const query = eventFilter.trim().toLowerCase();
@@ -136,8 +172,21 @@ export const SocketLoggerTab = () => {
             {connection.joinedRooms.length > 0 ? ` (${roomsExpanded ? "hide" : "show"})` : ""}
           </Text>
         </Pressable>
-        {roomsExpanded && connection.joinedRooms.length > 0 ? (
-          <Text style={styles.roomsText}>{connection.joinedRooms.join(", ")}</Text>
+        {roomsExpanded && roomRows.length > 0 ? (
+          <View style={styles.roomsList}>
+            {roomRows.map((room) => (
+              <View key={room.id} style={styles.roomRow}>
+                <Text style={styles.roomsText} numberOfLines={1}>
+                  {room.label}
+                </Text>
+                {room.showIdSubtitle ? (
+                  <Text style={styles.roomIdText} numberOfLines={1}>
+                    {room.id}
+                  </Text>
+                ) : null}
+              </View>
+            ))}
+          </View>
         ) : null}
       </View>
 
@@ -224,7 +273,10 @@ const styles = StyleSheet.create({
   },
   statusText: { fontSize: 11, fontWeight: "700" },
   metaText: { color: colors.muted, fontSize: 11 },
+  roomsList: { gap: 6, paddingTop: 2 },
+  roomRow: { gap: 1 },
   roomsText: { color: colors.text, fontSize: 11 },
+  roomIdText: { color: colors.muted, fontSize: 10, fontFamily: "Menlo" },
   filterRow: {
     flexDirection: "row",
     flexWrap: "wrap",

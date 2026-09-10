@@ -1,6 +1,6 @@
 {
   "name": "@supriyadies-work/rn-devtools",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Supr - Devtools: host-agnostic React Native DevTools panel with route inspector, HTTP logger, socket logger, push/call QA logger, network simulator, deep link launcher, and debug export.",
   "main": "src/index.ts",
   "types": "src/index.ts",
