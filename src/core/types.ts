@@ -84,6 +84,17 @@ export type PushCallLogEntry = {
   redacted?: boolean;
 };
 
+export type PushCallOsPermission = "granted" | "denied" | "unknown";
+
+export type PushCallDiagnostics = {
+  notifeeVersion?: string;
+  firebaseMessagingVersion?: string;
+  firebaseAppVersion?: string;
+  microphone?: PushCallOsPermission;
+  callPhone?: PushCallOsPermission | "n/a";
+  readPhone?: PushCallOsPermission | "n/a";
+};
+
 export type PushCallAdapter = {
   /** Host-provided TnC body (English). Library shows default if omitted. */
   termsText?: string;
@@ -94,6 +105,15 @@ export type PushCallAdapter = {
   saveConsent: (enabled: boolean) => void | Promise<void>;
   /** Called when logging flips ON/OFF so host arms/disarms bridges. */
   onLoggingChange: (enabled: boolean) => void;
+  /**
+   * Optional: current FCM registration token for QA handoff.
+   * Only fetched/shown while logging consent is ON — do not call when OFF.
+   */
+  getFcmToken?: () => Promise<string | null | undefined>;
+  /** Optional: read-only OS notification permission (no prompt). */
+  getOsNotificationPermission?: () => Promise<PushCallOsPermission>;
+  /** Optional: package versions + mic/phone permission snapshot for ? popup. */
+  getDiagnostics?: () => Promise<PushCallDiagnostics> | PushCallDiagnostics;
 };
 
 export type FabPosition = {
